@@ -1,5 +1,5 @@
 # My music bot for Discord
-This is a passion project that I've made because most popular music bots don't support playing through link. This bot contains a handful of features that I find useful which include but are not limited to:
+This is a passion project that I've made because most popular music bots don't support playing through link. This bot contains a handful of features that I find useful which include but are not limited to: <br />
 *Link playability <br />
 *Youtube search <br />
 *Playlist support <br />
