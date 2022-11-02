@@ -31,7 +31,7 @@ class CommandsCog(commands.Cog):
             'source_address': '0.0.0.0'
         }
     # Connect voice Channel
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def connect(self,ctx):
         voiceChannel = ctx.message.author.voice.channel
         if not voiceChannel:
@@ -45,7 +45,7 @@ class CommandsCog(commands.Cog):
         await ctx.send(f"Joined {voiceChannel}")
 
     # Help -> Command Manual
-    @commands.command(name='help')
+    @commands.command(name='help',case_insensitive=True)
     async def help(self,ctx):
         embed = discord.Embed(
             title = 'Command Manual',
@@ -80,7 +80,7 @@ class CommandsCog(commands.Cog):
         await ctx.send(embed=embed)
 
     # Play music
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def play(self,ctx, url: str,*args):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         duration = None
@@ -125,7 +125,7 @@ class CommandsCog(commands.Cog):
                 voice.play(audio,after=lambda e: asyncio.run_coroutine_threadsafe(self.skip(ctx,True), self.bot.loop))
 
     # Disconnect voice Channel
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def disconnect(self,ctx):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice.is_connected():
@@ -133,7 +133,7 @@ class CommandsCog(commands.Cog):
             await ctx.send("Disconnect voice channel")
 
     #Stop
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def stop(self,ctx):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         voice.stop()
@@ -141,7 +141,7 @@ class CommandsCog(commands.Cog):
         await ctx.send("Audio stop")
         
     # Pause
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def pause(self,ctx):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice.is_playing():
@@ -151,7 +151,7 @@ class CommandsCog(commands.Cog):
             await ctx.send("Audio not playing")
 
     #Resume
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def resume(self,ctx):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         if voice.is_paused():
@@ -161,7 +161,7 @@ class CommandsCog(commands.Cog):
             await ctx.send("The audio is not paused")
 
     #Skip
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def skip(self,ctx,*args):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         voice.stop()
@@ -177,11 +177,11 @@ class CommandsCog(commands.Cog):
             await self.play(ctx,url,True)
         else:
             await self.play(ctx,url)
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def clear(self,ctx):
         self.queue.clear()
         
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def songsinqueue(self,ctx):
         messagetosend = ""
         if len(self.queue) == 0:
@@ -194,7 +194,7 @@ class CommandsCog(commands.Cog):
                 await ctx.send(messagetosend)
         elif len(self.queue) > 25:
             await ctx.send("Too many songs in queue to display.")
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def addplaylist(self,ctx,url: str):
         if 'playlist' in url or 'list' in url:
             try:
@@ -226,7 +226,7 @@ class CommandsCog(commands.Cog):
             goodjob = True
         if goodjob == True:
             asyncio.run_coroutine_threadsafe(self.play(ctx,url),loop=self.bot.loop)
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def ytsearch(self,ctx,*args):
         query = ' '.join(args)
         ytdl = youtube_dl.YoutubeDL(self.ydl_opts)
@@ -236,7 +236,7 @@ class CommandsCog(commands.Cog):
         await vote_msg.add_reaction('👍')
         await vote_msg.add_reaction('👎')
         asyncio.run_coroutine_threadsafe(self.searchhandler(ctx,vote_msg.id,url),self.bot.loop)
-    @commands.command()
+    @commands.command(case_insensitive=True)
     @commands.is_owner()
     async def closebot(self,ctx):
         await self.clear(ctx)
@@ -249,7 +249,7 @@ class CommandsCog(commands.Cog):
         except:
             pass
         await self.bot.close()
-    @commands.command()
+    @commands.command(case_insensitive=True)
     async def currentsong(self,ctx):
         if self.current_song == None:
             ctx.send("No song playing.")
