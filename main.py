@@ -14,7 +14,7 @@ bot = commands.Bot(command_prefix="!", intents=intents, help_command=None)
 
 asyncio.run(bot.load_extension('cogs.commands'))
 
-@bot.command()
+@bot.command(case_insensitive=True)
 @commands.is_owner()
 async def restart(ctx):
     await bot.reload_extension('cogs.commands')
