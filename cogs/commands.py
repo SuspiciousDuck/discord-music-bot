@@ -14,8 +14,11 @@ import threading
 class CommandsCog(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
-        self.queue = []
+        self.queuey = []
         self.current_song = None
+        self.loopy = False
+        self.cmdnames = ["!connect","!disconnect","!play","!stop","!pause","!resume","!skip","!clear","!queue","!addplaylist","!ytsearch","!currentsong","!loop"]
+        self.cmddescs = ["connect voice channel","disconnect voice channel","play audio","stop audio","pause audio","resume audio","skip audio","clear queue","sends the queue", "queue playlist","plays first result of query","sends audio name","loops playing song"]
         self.ydl_opts = {
             'format': 'bestaudio/best',
             'outtmpl': '%(extractor)s-%(id)s-%(title)s.%(ext)s',
@@ -51,34 +54,10 @@ class CommandsCog(commands.Cog):
             title = 'Command Manual',
             color = discord.Color.green()
         )
-        # connect
-        embed.add_field(name='!connect', value='connect voice channel', inline=False)
-        # diconnect
-        embed.add_field(name='!diconnect', value='diconnect voice channel', inline=False)
-        # play
-        embed.add_field(name='!play (url here)', value='play audio', inline=False)
-        # stop
-        embed.add_field(name='!stop', value='stop audio', inline=False)
-        # pause
-        embed.add_field(name='!pause', value='pause audio', inline=False)
-        # resume
-        embed.add_field(name='!resume', value='resume audio', inline=False)
-        # skip
-        embed.add_field(name='!skip', value='skip audio', inline=False)
-        # clear
-        embed.add_field(name='!clear', value='clear queue', inline=False)
-        # songsinqueue
-        embed.add_field(name='!songsinqueue', value='sends the queue', inline=False)
-        #addplaylist
-        embed.add_field(name='!addplaylist', value='adds a playlist to queue', inline=False)
-        #ytsearch
-        embed.add_field(name='!ytsearch', value='plays the first result of query', inline=False)
-        #currentsong
-        embed.add_field(name='!currentsong', value='sends the currently playing audio', inline=False)
-        #restart
-        embed.add_field(name='!restart', value='owner only, restarts commands to apply updates', inline=False)
+        for i in range(len(self.cmdnames)):
+            embed.add_field(name=self.cmdnames[i],value=self.cmddescs[i],inline=False)
         await ctx.send(embed=embed)
-
+    
     # Play music
     @commands.command(case_insensitive=True)
     async def play(self,ctx, url: str,*args):
@@ -113,16 +92,27 @@ class CommandsCog(commands.Cog):
         #get a stream
         audio = await YTDLSource.from_url(url=url, loop=self.bot.loop, stream=True)
 
+        def loophandler(self,url):
+            if self.loopy == False:
+                asyncio.run_coroutine_threadsafe(self.skip(ctx,True), self.bot.loop)
+            elif self.loopy == True:
+                while True:
+                    time.sleep(.25)
+                    if voice.is_playing() == False:
+                        break
+                asyncio.run_coroutine_threadsafe(self.play(ctx,url),self.bot.loop)
+        
         #check if bot is connected to voice channel
         if duration == None:
             await ctx.send("Couldn't retrieve duration data, try again or choose a different song.")
         if voice.is_connected() and duration != None:
             if not (True in args):
-                self.queue.append(url)
-            if not voice.is_playing() and self.queue[0] == url:
-                self.queue.pop(0)
+                self.queuey.append(url)
+            if not voice.is_playing() and self.queuey[0] == url:
+                self.queuey.pop(0)
                 self.current_song = url
-                voice.play(audio,after=lambda e: asyncio.run_coroutine_threadsafe(self.skip(ctx,True), self.bot.loop))
+                voice.play(audio,after=lambda e: loophandler(self,url))
+                await ctx.send(f"Now Playing: {youtube_dl.YoutubeDL(self.ydl_opts).extract_info(self.current_song,download=False).get('title',None)}")
 
     # Disconnect voice Channel
     @commands.command(case_insensitive=True)
@@ -166,11 +156,11 @@ class CommandsCog(commands.Cog):
         voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
         voice.stop()
         self.current_song = None
-        if len(self.queue) == 0:
+        if len(self.queuey) == 0:
             return
         time.sleep(1)
         try:
-            url = self.queue[0]
+            url = self.queuey[0]
         except:
             return
         if True in args:
@@ -179,20 +169,19 @@ class CommandsCog(commands.Cog):
             await self.play(ctx,url)
     @commands.command(case_insensitive=True)
     async def clear(self,ctx):
-        self.queue.clear()
+        self.queuey.clear()
         
     @commands.command(case_insensitive=True)
-    async def songsinqueue(self,ctx):
+    async def queue(self,ctx):
         messagetosend = ""
-        if len(self.queue) == 0:
+        if len(self.queuey) == 0:
             await ctx.send("Nothing in queue.")
-        elif len(self.queue) <= 25:
-            for i in range(len(self.queue)):
+        elif len(self.queuey) <= 25:
+            for i in range(len(self.queuey)):
                 with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
                     messagetosend = messagetosend+","+ydl.extract_info(self.current_song,download=False).get('title',None)
-                messagetosend = messagetosend+","+self.queue[i]
-                await ctx.send(messagetosend)
-        elif len(self.queue) > 25:
+            await ctx.send(messagetosend)
+        elif len(self.queuey) > 25:
             await ctx.send("Too many songs in queue to display.")
     @commands.command(case_insensitive=True)
     async def addplaylist(self,ctx,url: str):
@@ -200,12 +189,12 @@ class CommandsCog(commands.Cog):
             try:
                 voice = discord.utils.get(self.bot.voice_clients, guild=ctx.guild)
                 RunSkip = False
-                if voice != None and voice.is_connected() and not voice.is_playing() and len(self.queue) == 0:
+                if voice != None and voice.is_connected() and not voice.is_playing() and len(self.queuey) == 0:
                     RunSkip = True
                 links = Playlist(url).video_urls
                 for i in range(len(links)):
-                    if not (links[i] in self.queue):
-                        self.queue.append(links[i])
+                    if not (links[i] in self.queuey):
+                        self.queuey.append(links[i])
                 if RunSkip == True:
                     asyncio.run_coroutine_threadsafe(self.skip(ctx),self.bot.loop)
             except:
@@ -252,10 +241,18 @@ class CommandsCog(commands.Cog):
     @commands.command(case_insensitive=True)
     async def currentsong(self,ctx):
         if self.current_song == None:
-            ctx.send("No song playing.")
+            await ctx.send("No song playing.")
         else:
             with youtube_dl.YoutubeDL(self.ydl_opts) as ydl:
-                ctx.send(f"Currently playing: {ydl.extract_info(self.current_song,download=False).get('title',None)}")
+                await ctx.send(f"Currently playing: {ydl.extract_info(self.current_song,download=False).get('title',None)}")
+    @commands.command(case_insensitive=True)
+    async def loop(self,ctx):
+        scoob = self.loopy
+        if scoob == True:
+            self.loopy = False
+        else:
+            self.loopy = True
+        await ctx.send(f"Looping: {self.loopy}")
 
 async def setup(bot):
     await bot.add_cog(CommandsCog(bot))

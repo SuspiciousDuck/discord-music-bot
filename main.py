@@ -4,7 +4,7 @@ import asyncio
 from discord.ext import commands
 
 TOKEN = None
-with open(os.path.dirname(os.path.abspath(__file__))+"\\token.txt") as f:
+with open(os.path.dirname(os.path.abspath(__file__))+"/token.txt") as f:
     TOKEN = f.read().split("\n")[0]
 
 # Start Bot
