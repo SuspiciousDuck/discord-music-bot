@@ -4,7 +4,7 @@ This is a passion project that I've made because most popular music bots don't s
 *Youtube search <br />
 *Playlist support <br />
 *And more! <br />
-You are free to use this code however you please and messing around with the code is encouraged. Have fun with your music!
+You are free to use this code however you please and tinkering with the code is encouraged. Have fun with your music!
 
 # Instructions
 In cookies.txt, enter your youtube cookies. If you don't want to, delete cookies.txt and edit the youtubedl options in cogs/commands.py to exclude cookies. <br />
